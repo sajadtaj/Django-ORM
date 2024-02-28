@@ -1,0 +1,50 @@
+{
+  "name": "",
+  "isOrdered": true,
+  "folders": {
+    "backend": {
+      "name": "backend",
+      "isOrdered": true,
+      "folders": {
+        "__pycache__": {
+          "name": "__pycache__",
+          "isOrdered": true,
+          "folders": {},
+          "files": {}
+        }
+      },
+      "files": {}
+    },
+    "orm": {
+      "name": "orm",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "OrmApp": {
+      "name": "OrmApp",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "static": {
+      "name": "static",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "student": {
+      "name": "student",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    },
+    "templates": {
+      "name": "templates",
+      "isOrdered": true,
+      "folders": {},
+      "files": {}
+    }
+  },
+  "files": {}
+}

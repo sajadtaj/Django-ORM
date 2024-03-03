@@ -26,6 +26,9 @@ class Package(models.Model):
     
     def __str__(self) -> str:
         return f'lesson name:{self.name}'
+    
+    class Meta:
+        ordering=['name']
         
 
 class Course(models.Model):
@@ -38,3 +41,4 @@ class Course(models.Model):
     
     def __str__(self) -> str:
         return f'lesson name:{self.name}'
+    

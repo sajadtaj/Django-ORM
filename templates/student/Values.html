@@ -1,0 +1,16 @@
+{% for student in student %}
+<!-- show Dictionary -->
+    <p>
+    {{ student.name }}
+    <br>
+    {{ student.course__name }}
+    <br>
+    {{ student.course__student__name }}
+    <br>
+    {{ student.course__description }}
+    <br>
+    {{ student.course__lesson__name }}
+    <hr>
+    </p>
+
+{% endfor %}

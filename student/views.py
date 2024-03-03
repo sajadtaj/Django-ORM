@@ -1,6 +1,21 @@
 from django.shortcuts import render
 from .models import *
 from django.db.models import Q
+import time 
+from django.db import connection,reset_queries
+
+def debugger(func):
+    def wrapper(*args ,**kwargs):
+        reset_queries()
+        st      = time.time()
+        value   = func(*args ,**kwargs)
+        et      = time.time()
+        queries = len(connection.queries)
+        print(f"\n connection number: {queries}")
+        print(f"\n take time :{(et -st):.3f}")
+        return value
+    return wrapper
+        
 
 
 def index(request):
@@ -8,9 +23,14 @@ def index(request):
     
     print(std)
     print(std.query) # Show Query language
-    
     return render(request, 'student/student.html',{'student' : std})
 
+
+
+#!-----------------------------------------------------------------------------------+
+#!                                   Filter-Q-And Or                                 |                                                   
+#!-----------------------------------------------------------------------------------+
+#region
 def filter(request):
     # Filter
     # std= Student.objects.filter(name='ali')                       # Select Student with name = 'ali'
@@ -115,7 +135,7 @@ def MultiQueryFilter(request):
     #         )
     # )
     
-    # Method 4
+    # Method 3
     # اولویت در کد با کیوفانکشن هست
     # std = Package.objects.filter(
     #     Q(course__lesson__name='Math') &
@@ -124,9 +144,101 @@ def MultiQueryFilter(request):
     #         Q(course__student__name__startswith='d')
     #         )
     # )
-
+    
+    # Method 4 
+    # First Fliter base "Math" then filter base 'ali'
+    std = Package.objects.filter(course__lesson__name='Math').filter(course__student__name='ali') 
 
     print(std.query) # Show Query language
     #! Filter Query
     
     return render(request, 'student/student.html',{'student' : std})
+#endregion
+
+#!-----------------------------------------------------------------------------------+
+#!         ~Q - exclude - distinct - orderby - values - values_list - reverse         |                                                   
+#!-----------------------------------------------------------------------------------+
+#region
+
+def Not_Q_exclude(request):
+    # Give all Package Except student`s that learn math    -> by: ~Q        : not Condidition
+    # And remove ali from our list                         -> by: exclude   : remove simple from filter
+    
+    
+    # std = Package.objects.filter(~Q(course__lesson__name='Math')).exclude(name='ali')
+    #Or 
+    # std = Package.objects.filter(~Q(course__lesson__name='Math')).exclude(name__in=['ali','ahmad'])
+    
+    std = Student.objects.filter(~Q(course__lesson__name='Math')).exclude(name__in=['ali','ahmad'])
+
+    print(std.query) # Show Query language
+    return render(request, 'student/student.html',{'student' : std})
+
+def valuesfunction(request):
+    # برای دست یابی به اطلاعات سایر جدول های که با هم جوین شده اند
+    std = Package.objects.filter(course__lesson__name='Math').values("name","course__name","course__description","course__lesson__name")
+
+    print("Dictionary ",std) # Show Query language
+    #! NOTE
+    ## output of std is dictionary: 
+    # <QuerySet [{'name': 'Package_one', 'course__name': 'Course 1', 'course__description': 'This is a Course 1', 'course__lesson__name': 'Math'}]>
+    
+    print(std.query) # Show Query language
+    return render(request, 'student/Values.html',{'student' : std})
+
+def values_list_function(request):
+    # برای دست یابی به اطلاعات سایر جدول های که با هم جوین شده اند
+    std = Package.objects.filter(course__lesson__name='Math').values_list("name","course__name","course__description","course__lesson__name")
+
+    print("Tuple ",std) # Show Query language
+    #! NOTE
+    ## output of std is tuple: 
+    # <QuerySet [('Package_one', 'Course 1', 'This is a Course 1', 'Math')]>
+    print(std.query) # Show Query language
+    return render(request, 'student/Values_list.html',{'student' : std})
+
+def distinct_function(request):
+    # برای جلوگیری از ردیف های مشابه
+    std = Package.objects.filter(course__student__name='ahmad')
+    ## باید از دیستینک استفاده کنیم
+    std = Package.objects.filter(course__student__name='ahmad').distinct()
+    return render(request, 'student/student.html',{'student' : std})
+
+def orderby_function(request):
+    
+    # std = Package.objects.filter(course__student__name='ahmad').order_by("course__student__name").values("name","course_student__nsme","course__name","course__description")
+    # Asendibg
+    # std = Package.objects.all().order_by('course__student__name').values("name","course__student__name","course__name","course__description")
+
+    # Desendibg
+    # std = Package.objects.all().order_by('-course__student__name').values("name","course__student__name","course__name","course__description")
+    
+    #Order Base to item
+    std = Package.objects.all().order_by('course__student__name',"course__name").values("name","course__student__name","course__name","course__description")
+    
+    return render(request, 'student/Values.html',{'student' : std})
+
+#endregion
+
+#!-----------------------------------------------------------------------------------+
+#!                              select_related - prefetch_related                    |                                                   
+#!-----------------------------------------------------------------------------------+
+# برای کاهش زمان پاسخ
+
+#region
+
+@debugger
+def related_function(request):
+    
+    courses = Course.objects.select_related("lesson").filter(id__lte=5)
+    
+    FullCourse = []
+    for course in courses:
+        if course.lesson.name=="math":
+            FullCourse.append(f"Lesson : {course.lesson.name} pre course:{course.name}")
+            
+        else:
+            FullCourse.append(f"Lesson : {course.lesson.name} course:{course.name}")
+
+    return render(request, 'student/student.html',{'student' : FullCourse})
+

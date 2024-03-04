@@ -14,4 +14,6 @@ urlpatterns = [
     path('distinct_function/'   , views.distinct_function    , name ='distinct_function'),
     path('orderby_function/'   , views.orderby_function    , name ='orderby_function'),
     path('related_function/'   , views.related_function    , name ='related_function'),
+    path('prefetch_function/'   , views.prefetch_function    , name ='prefetch_function'),
+    path('prefetch_Multi_related/'   , views.prefetch_Multi_related    , name ='prefetch_Multi_related'),
 ]

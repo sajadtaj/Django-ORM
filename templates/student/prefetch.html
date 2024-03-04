@@ -1,0 +1,7 @@
+<h1>Full Course </h1>
+    {% for t in FullCourse %}
+        <p>{{t.course}}</p>
+        {% for s in t.students %}
+            <p>{{s}}</p>
+        {% endfor %}
+    {% endfor %}

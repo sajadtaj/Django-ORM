@@ -11,21 +11,19 @@ def debugger(func):
         value   = func(*args ,**kwargs)
         et      = time.time()
         queries = len(connection.queries)
-        print(f"\n connection number: {queries}")
-        print(f"\n take time :{(et -st):.3f}")
+        print('--'*5)
+        print(f" connection number: {queries}")
+        print(f" take time :{(et -st):.3f}")
+        print('--'*5)
         return value
     return wrapper
         
-
-
 def index(request):
     std = Student.objects.all()
     
     print(std)
     print(std.query) # Show Query language
     return render(request, 'student/student.html',{'student' : std})
-
-
 
 #!-----------------------------------------------------------------------------------+
 #!                                   Filter-Q-And Or                                 |                                                   
@@ -223,13 +221,20 @@ def orderby_function(request):
 #!-----------------------------------------------------------------------------------+
 #!                              select_related - prefetch_related                    |                                                   
 #!-----------------------------------------------------------------------------------+
-# برای کاهش زمان پاسخ
-
 #region
 
+# برای کاهش زمان پاسخ
+# select_related & prefetch_related-> reduce connection and Time
+# select_related   -> its use for foreginkey or one to one field like "lesson"
+# prefetch_related -> its use for many to many field like "student"
+
+#?-------------------------------------+
+#?               select_related        |
+#?-------------------------------------+
 @debugger
 def related_function(request):
-    
+    # پیدا کردن عناصری که هی دی زیر  دارند
+    # courses = Course.objects.filter(id__lte=5)  
     courses = Course.objects.select_related("lesson").filter(id__lte=5)
     
     FullCourse = []
@@ -241,4 +246,44 @@ def related_function(request):
             FullCourse.append(f"Lesson : {course.lesson.name} course:{course.name}")
 
     return render(request, 'student/student.html',{'student' : FullCourse})
+#?-------------------------------------+
+#?            prefetch_related         |
+#?-------------------------------------+
 
+@debugger
+def prefetch_function(request):
+    
+    courses = Course.objects.prefetch_related("student").filter(id__lte=5)
+    FullCourse = []
+    for course in courses:
+        if course.lesson.name=="art":
+            # above we fetch course.student.all  by -> courses = Course.objects.select_related("student").filter(id__lte=5)
+            students = [student.name for student in course.student.all()]
+            FullCourse.append({"course":f"Lesson : {course.lesson.name} pre course:{course.name}","students":students})
+            
+        else:
+            students = [student.name for student in course.student.all()]
+            FullCourse.append({"course":f"Lesson : {course.lesson.name} course:{course.name}","students":students})
+
+    return render(request, 'student/prefetch.html',{'FullCourse' : FullCourse})
+#?-------------------------------------+
+#? We can use some ralatad together    |
+#?-------------------------------------+
+@debugger
+def prefetch_Multi_related(request):
+    
+    courses = Course.objects.prefetch_related("lesson","student").filter(id__lte=5)
+    FullCourse = []
+    for course in courses:
+        if course.lesson.name=="art":
+            # above we fetch course.student.all  by -> courses = Course.objects.select_related("student").filter(id__lte=5)
+            students = [student.name for student in course.student.all()]
+            FullCourse.append({"course":f"Lesson : {course.lesson.name} pre course:{course.name}","students":students})
+            
+        else:
+            students = [student.name for student in course.student.all()]
+            FullCourse.append({"course":f"Lesson : {course.lesson.name} course:{course.name}","students":students})
+
+    return render(request, 'student/prefetch.html',{'FullCourse' : FullCourse})
+
+#endregion
